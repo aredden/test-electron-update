@@ -82,7 +82,7 @@ export default class ContentLayout extends Component<Props, State> {
 								}}>
 								G14ControlV2 ©2020 Created by Alex Redden
 								<br />
-								Version 0.1.27
+								Version 0.1.29
 							</Footer>
 						</div>
 					</div>
