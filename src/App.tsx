@@ -24,6 +24,7 @@ interface State {
 	store: EnhancedStore<G14Config> | undefined;
 	boostVisible: boolean;
 	showModal: boolean;
+	updateVisible: boolean;
 }
 
 export default class App extends Component<Props, State> {
@@ -34,6 +35,7 @@ export default class App extends Component<Props, State> {
 			store: undefined,
 			boostVisible: true,
 			showModal: false,
+			updateVisible: false,
 		};
 	}
 
@@ -68,10 +70,34 @@ export default class App extends Component<Props, State> {
 
 	componentDidMount() {
 		this.loadConfig();
+		window.ipcRenderer.on('updateAvailable', this.handleUpdateAvailable);
+		window.ipcRenderer.on('updateDownloaded', this.handleUpdateDownloaded);
+	}
+
+	handleUpdateAvailable = () => {
+		message.info('New update available, downloading...');
+	};
+
+	handleUpdateDownloaded = () => {
+		message.info('New update downloaded!');
+		this.setState({ updateVisible: true });
+	};
+
+	handleExitAndUpdate = () => {
+		window.ipcRenderer.send('exitAndUpdate');
+	};
+
+	cancelExitAndUpdate = () => {
+		this.setState({ updateVisible: false });
+	};
+
+	componentWillUnmount() {
+		window.ipcRenderer.off('updateAvailable', this.handleUpdateAvailable);
+		window.ipcRenderer.off('updateDownloaded', this.handleUpdateDownloaded);
 	}
 
 	render() {
-		let { config, boostVisible, showModal } = this.state;
+		let { config, boostVisible, showModal, updateVisible } = this.state;
 		console.log(process.env.DEBUG_DROPMENU);
 		if (config) {
 			return (
@@ -89,6 +115,11 @@ export default class App extends Component<Props, State> {
 						<AppLayout></AppLayout>
 					</div>
 					<BoostEnable {...{ boostVisible, show: showModal }}></BoostEnable>
+					<Modal
+						title="Exit and update app?"
+						visible={updateVisible}
+						onOk={this.handleExitAndUpdate}
+						onCancel={this.cancelExitAndUpdate}></Modal>
 				</>
 			);
 		} else {
